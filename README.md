@@ -10,7 +10,7 @@ A responsive full-stack expense tracker built with React, Vite, Tailwind CSS, Ex
 
 ## Get started
 
-1. Make sure MongoDB is running. Without a `.env` file, the server uses `mongodb://127.0.0.1:27017/expense-tracker`.
+1. Make sure MongoDB is running. In development without a `.env` file, the server uses `mongodb://127.0.0.1:27017/expense-tracker`.
 2. To use a different MongoDB instance, copy `.env.example` to `.env` and set `MONGODB_URI`.
 3. From the repository root, install dependencies and start both apps:
 
@@ -28,7 +28,7 @@ npm run build
 npm start
 ```
 
-Set `NODE_ENV=production` and configure `PORT` and `MONGODB_URI`. The Express server serves the built frontend from `client/dist` as well as the API.
+Set `NODE_ENV=production` and configure `PORT` and `MONGODB_URI`. Production requires an explicit database URI; the Express server serves the built frontend from `client/dist` as well as the API.
 
 ## Deploy to Render
 

@@ -8,7 +8,14 @@ dotenv.config({ path: path.join(projectRoot, ".env") });
 
 const { default: app } = await import("./app.js");
 const port = Number(process.env.PORT) || 5000;
-const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/expense-tracker";
+const mongoUri =
+  process.env.MONGODB_URI ||
+  (process.env.NODE_ENV === "production" ? "" : "mongodb://127.0.0.1:27017/expense-tracker");
+
+if (!mongoUri) {
+  console.error("MONGODB_URI is required in production. Set it in the hosting service environment.");
+  process.exit(1);
+}
 
 try {
   await mongoose.connect(mongoUri);
