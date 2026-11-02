@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Transaction from "../models/Transaction.js";
 
 const allowedTypes = new Set(["income", "expense"]);
+const demoTransactions = [];
 
 function validateTransaction(body) {
   const errors = {};
@@ -39,6 +40,14 @@ function validateTransaction(body) {
 
 export async function listTransactions(_request, response, next) {
   try {
+    if (process.env.DEMO_MODE === "true") {
+      return response.json(
+        [...demoTransactions]
+          .sort((left, right) => new Date(right.date) - new Date(left.date))
+          .map((transaction) => ({ ...transaction })),
+      );
+    }
+
     const transactions = await Transaction.find().sort({ date: -1, createdAt: -1 }).lean();
     response.json(transactions);
   } catch (error) {
@@ -51,6 +60,18 @@ export async function createTransaction(request, response, next) {
     const { errors, values } = validateTransaction(request.body ?? {});
     if (Object.keys(errors).length) {
       return response.status(400).json({ message: "Please correct the highlighted fields.", errors });
+    }
+
+    if (process.env.DEMO_MODE === "true") {
+      const now = new Date();
+      const transaction = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        ...values,
+        createdAt: now,
+        updatedAt: now,
+      };
+      demoTransactions.push(transaction);
+      return response.status(201).json({ ...transaction });
     }
 
     const transaction = await Transaction.create(values);
@@ -72,6 +93,13 @@ export async function removeTransaction(request, response, next) {
       return response.status(400).json({ message: "Transaction id is invalid." });
     }
 
+    if (process.env.DEMO_MODE === "true") {
+      const index = demoTransactions.findIndex((transaction) => transaction._id === request.params.id);
+      if (index === -1) return response.status(404).json({ message: "Transaction not found." });
+      demoTransactions.splice(index, 1);
+      return response.status(204).end();
+    }
+
     const transaction = await Transaction.findByIdAndDelete(request.params.id);
     if (!transaction) return response.status(404).json({ message: "Transaction not found." });
     return response.status(204).end();
@@ -82,6 +110,21 @@ export async function removeTransaction(request, response, next) {
 
 export async function getSummary(_request, response, next) {
   try {
+    if (process.env.DEMO_MODE === "true") {
+      const totals = demoTransactions.reduce(
+        (result, transaction) => {
+          if (transaction.type === "income") result.totalIncome += transaction.amount;
+          else result.totalExpense += transaction.amount;
+          return result;
+        },
+        { totalIncome: 0, totalExpense: 0 },
+      );
+      return response.json({
+        ...totals,
+        balance: totals.totalIncome - totals.totalExpense,
+      });
+    }
+
     const [totals = { totalIncome: 0, totalExpense: 0 }] = await Transaction.aggregate([
       {
         $group: {

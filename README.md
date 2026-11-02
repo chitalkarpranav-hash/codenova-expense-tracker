@@ -32,7 +32,9 @@ Set `NODE_ENV=production` and configure `PORT` and `MONGODB_URI`. Production req
 
 ## Deploy to Render
 
-The root `render.yaml` defines a Render Blueprint web service that builds the frontend and serves it from Express. Push this repository to GitHub, then in Render choose **New → Blueprint** and select the repository and branch. During setup, set `MONGODB_URI` to a MongoDB Atlas connection string; the value is intentionally not stored in this repository. Add the Render service's hostname to the Atlas network access list as appropriate. Render provides `PORT` automatically, and `/api/health` is configured as the service health check.
+The root `render.yaml` defines a Render Blueprint web service that builds the frontend and serves it from Express. Push this repository to GitHub, then in Render choose **New → Blueprint** and select the repository and branch. The Blueprint enables `DEMO_MODE`, so the public demo starts without database credentials. Demo transactions live in server memory and reset whenever the service restarts; do not enter private financial data.
+
+For persistent transactions, set `DEMO_MODE=false` and `MONGODB_URI` to a MongoDB Atlas connection string in Render's environment settings. Add the Render service's outbound IP ranges to the Atlas IP access list. The database connection string is intentionally not stored in this repository. Render provides `PORT` automatically, and `/api/health` is configured as the service health check.
 
 ## API
 
